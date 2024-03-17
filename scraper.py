@@ -6,27 +6,29 @@ import configparser
 import sys
 from bs4 import BeautifulSoup
 from datetime import datetime
+from Settings import settings
 
 def main_scraper():
-    # data = list()
+    conf = settings.get_settings()
     config = configparser.ConfigParser()
     config.read('fireboard.ini')
 
     format = "%d.%m.%Y %H:%M:%S"
-    url = config['Fireboard']['url']
-    cookies = dict(PHPSESSID=config['Fireboard']['phpsessid'])
+    url = conf.fb_url
+    cookies = dict(PHPSESSID=conf.fb_phpsessid)
 
-    conn = psycopg2.connect(database=config['Postgres']['db'],
-                            host=config['Postgres']['host'],
-                            user=config['Postgres']['user'],
-                            password=config['Postgres']['password'],
-                            port=config['Postgres']['port']
-    )
+    conn = psycopg2.connect(database=conf.db_name,
+                            host=conf.db_host,
+                            user=conf.db_user,
+                            password=conf.db_password,
+                            port=conf.db_port)
 
     try:
         while True:
             print("########## Refresh status", datetime.now())
             html_text = requests.get(url, cookies=cookies).text
+            # TODO: Need to catch requests.Timeout and requests.ConnectionError
+            # If that happens push notification then continue
             soup = BeautifulSoup(html_text, 'html.parser')
             table_body = soup.find('tbody')
             table_rows = table_body.find_all('tr')
