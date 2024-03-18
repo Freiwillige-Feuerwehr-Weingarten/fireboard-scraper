@@ -1,8 +1,8 @@
 import psycopg2
 import requests
 import urllib3
-import configparser
 import sys
+from Settings import settings
 
 
 def handle_notify(conn):
@@ -14,33 +14,40 @@ def handle_notify(conn):
     conn.notifies.clear()
 
 def send_to_alamos(issi, status):
+    sconf = settings.get_settings()
     print(f"Issi: {issi}, Status: {status}")
     data = {}
     data['type'] = 'STATUS'
-    data['sender'] = __sender
-    data['authorization'] = __auth
+    data['sender'] = sconf.alamos_sender
+    data['authorization'] = sconf.alamos_auth
     data['data'] = {}
     data['data']['status'] = status
     data['data']['address'] = issi
-    requests.post(__url, json=data, verify=False)
+    print(f"Sending to Weingarten")
+    try:
+        requests.post(sconf.alamos_stats_endpoint, json=data, verify=False)
+    except:
+        print(f'Error sending to Weingarten')
+    print(f"Sending to Wangen")
+    data['sender'] = sconf.alamos_remote_sender
+    data['authorization'] = sconf.alamos_remote_auth
+    try:
+        requests.post(sconf.alamos_remote_stats_endpoint, json=data, verify=False)
+    except:
+        print(f'Error sending to Wangen')
 
 def main_listener():
-    global __url
-    global __auth
-    global __sender
+    conf = settings.get_settings()
 
     print(f"Starting status listener on DB ...")
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    config = configparser.ConfigParser()
-    config.read('fireboard.ini')
-
     try:
-        conn = psycopg2.connect(database=config['Postgres']['db'],
-                                host=config['Postgres']['host'],
-                                user=config['Postgres']['user'],
-                                password=config['Postgres']['password'],
-                                port=config['Postgres']['port'],
+        conn = psycopg2.connect(database=conf.db_name,
+                                host=conf.db_host,
+                                user=conf.db_user,
+                                password=conf.db_password,
+                                port=conf.db_port,
                                 connect_timeout=5)
         
         conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
@@ -50,11 +57,6 @@ def main_listener():
     except psycopg2.Error as e:
         print(f"DB Error, Code: {e.pgcode} Error: {e.pgerror}")
         return -1
-
-    __url = config['Alamos']['stats_endpoint']
-    __auth = config['Alamos']['auth']
-    __sender = config['Alamos']['sender']
-
     try:
         while True:
             handle_notify(conn)
