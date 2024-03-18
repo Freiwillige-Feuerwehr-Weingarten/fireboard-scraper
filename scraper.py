@@ -2,7 +2,6 @@ import requests
 import psycopg2
 import pprint as pp
 import time
-import configparser
 import sys
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -10,8 +9,6 @@ from Settings import settings
 
 def main_scraper():
     conf = settings.get_settings()
-    config = configparser.ConfigParser()
-    config.read('fireboard.ini')
 
     format = "%d.%m.%Y %H:%M:%S"
     url = conf.fb_url
