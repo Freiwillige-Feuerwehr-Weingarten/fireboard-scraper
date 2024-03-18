@@ -26,12 +26,20 @@ def main_scraper():
     try:
         while True:
             print("########## Refresh status", datetime.now())
-            html_text = requests.get(url, cookies=cookies).text
-            # TODO: Need to catch requests.Timeout and requests.ConnectionError
-            # If that happens push notification then continue
-            soup = BeautifulSoup(html_text, 'html.parser')
-            table_body = soup.find('tbody')
-            table_rows = table_body.find_all('tr')
+            try:
+                html_text = requests.get(url, cookies=cookies).text
+            except (requests.Timeout, requests.ConnectionError) as error:
+                pp.pprint(error)
+                # TODO send telemetry along
+                time.sleep(15)
+                continue
+            try:
+                soup = BeautifulSoup(html_text, 'html.parser')
+                table_body = soup.find('tbody')
+                table_rows = table_body.find_all('tr')
+            except (AttributeError):
+                print("PHP Session invalid")
+                break
             for row in table_rows:
                 table_cols = row.find_all('td')
                 table_cols = [ele.text.strip() for ele in table_cols]
