@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from functools import lru_cache
 
 class Settings(BaseSettings):
     fb_url: str
@@ -13,5 +14,6 @@ class Settings(BaseSettings):
     alamos_sender: str
     model_config = SettingsConfigDict(env_file='./.env')
 
+@lru_cache()
 def get_settings():
     return Settings()
