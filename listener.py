@@ -7,8 +7,8 @@ from Settings import settings
 
 
 def handle_notify(conn):
-    if select.select([conn],[],[],5) == ([],[],[]):
-        print("Timeout")
+    if select.select([conn],[],[]) == ([],[],[]):
+        pass
     else:
         conn.poll()
         for notify in conn.notifies:
