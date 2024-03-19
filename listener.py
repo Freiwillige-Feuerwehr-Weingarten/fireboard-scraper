@@ -2,16 +2,20 @@ import psycopg2
 import requests
 import urllib3
 import sys
+import select
 from Settings import settings
 
 
 def handle_notify(conn):
-    conn.poll()
-    for notify in conn.notifies:
-        print(notify.payload)
-        splits = notify.payload.strip("()").split(",")
-        send_to_alamos(splits[0], splits[1])
-    conn.notifies.clear()
+    if select.select([conn],[],[],5) == ([],[],[]):
+        print("Timeout")
+    else:
+        conn.poll()
+        for notify in conn.notifies:
+            print(notify.payload)
+            splits = notify.payload.strip("()").split(",")
+            send_to_alamos(splits[0], splits[1])
+        conn.notifies.clear()
 
 def send_to_alamos(issi, status):
     sconf = settings.get_settings()
