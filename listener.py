@@ -37,8 +37,8 @@ def send_to_alamos(issi, status):
     data['authorization'] = sconf.alamos_remote_auth
     try:
         requests.post(sconf.alamos_remote_stats_endpoint, json=data, verify=False)
-    except:
-        print(f'Error sending to Wangen')
+    except requests.exceptions.RequestException as err:
+        print(f'Error sending to Wangen: {err}')
 
 def main_listener():
     conf = settings.get_settings()
