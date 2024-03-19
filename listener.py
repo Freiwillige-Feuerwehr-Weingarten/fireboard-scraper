@@ -30,8 +30,8 @@ def send_to_alamos(issi, status):
     print(f"Sending to Weingarten")
     try:
         requests.post(sconf.alamos_stats_endpoint, json=data, verify=False)
-    except:
-        print(f'Error sending to Weingarten')
+    except requests.exceptions.RequestException as err:
+        print(f'Error sending to Weingarten: {err}')
     print(f"Sending to Wangen")
     data['sender'] = sconf.alamos_remote_sender
     data['authorization'] = sconf.alamos_remote_auth
