@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     alamos_remote_stats_endpoint: str
     alamos_remote_auth: str
     alamos_remote_sender: str
+    alamos_remote_secondary_stats_endpoint: str
+    alamos_remote_secondary_auth: str
+    alamos_remote_secondary_sender: str
     model_config = SettingsConfigDict(env_file='./.env')
 
 @lru_cache()
